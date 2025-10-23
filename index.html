@@ -16,6 +16,8 @@
   <input type="text" id="searchInput" placeholder="Enter video topic" />
   <button onclick="searchVideos()">Search</button>
 
+  
+
   <ul id="results"></ul>
 
   <div id="videoPlayer"></div>
@@ -23,28 +25,46 @@
   <script>
     const apiKey = 'AIzaSyB5yeOfmhq3esZD5A39a_UdgZQ-Dg5mmZw';
 
-    function searchVideos() {
-      const query = document.getElementById('searchInput').value;
-      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=5&key=${apiKey}`;
 
-      fetch(url)
-        .then(response => response.json())
-        .then(data => {
-          const resultsList = document.getElementById('results');
-          resultsList.innerHTML = '';
-          data.items.forEach(item => {
-            const videoId = item.id.videoId;
-            const title = item.snippet.title;
-            const li = document.createElement('li');
-            li.textContent = title;
-            li.onclick = () => showVideo(videoId);
-            resultsList.appendChild(li);
-          });
-        })
-        .catch(error => {
-          console.error('Error fetching videos:', error);
-        });
-    }
+    //enter to search videos
+    document.getElementById('searchInput').addEventListener('keydown', function(event) {
+  if (event.key === 'Enter') {
+    searchVideos();
+  }
+});
+
+    
+    function searchVideos() {
+  const query = document.getElementById('searchInput').value.trim();
+  if (!query) return; // Prevent empty searches
+
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('results').innerHTML = '';
+  document.getElementById('videoPlayer').innerHTML = '';
+
+  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=5&key=${apiKey}`;
+
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      const resultsList = document.getElementById('results');
+      data.items.forEach(item => {
+        const videoId = item.id.videoId;
+        const title = item.snippet.title;
+        const li = document.createElement('li');
+        li.textContent = title;
+        li.onclick = () => showVideo(videoId);
+        resultsList.appendChild(li);
+      });
+    })
+    .catch(error => {
+      console.error('Error fetching videos:', error);
+    })
+    .finally(() => {
+      document.getElementById('loading').style.display = 'none';
+    });
+}
+
 
     function showVideo(videoId) {
       const embedHtml = `<iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`;
