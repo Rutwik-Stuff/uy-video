@@ -16,40 +16,38 @@
   <p>Soo this is cool right? Enjoy!</p>
   <p>We are adding more features soon.</p>
   <p>Does it not work? Check <a href="/uy-video/status.html">Status</a></p>
+
   <input type="text" id="searchInput" placeholder="Enter video topic" />
-  <button onclick="searchVideos()">Search</button>
+  <button onclick="searchVideos(true)">Search</button>
 
   <p>Or paste a YouTube URL directly:</p>
-<input type="text" id="urlInput" placeholder="Paste YouTube URL here" />
-<button onclick="embedFromUrl()">Embed</button>
-
+  <input type="text" id="urlInput" placeholder="Paste YouTube URL here" />
+  <button onclick="embedFromUrl()">Embed</button>
 
   <ul id="results"></ul>
   <button id="loadMoreBtn" onclick="searchVideos(false)" style="display:none;">Load More</button>
 
-
   <div id="videoPlayer"></div>
 
   <script>
-    //declare global variables and api keys
-    const apiKey = 'AIzaSyB5yeOfmhq3esZD5A39a_UdgZQ-Dg5mmZw';
-    let currentPage = 0;
+    const apiKey = 'YOUR_API_KEY_HERE'; // Replace with your actual API key
     let nextPageToken = '';
 
     function searchVideos(reset = true) {
+      const query = document.getElementById('searchInput').value;
       if (reset) {
-        currentPage = 0;
         nextPageToken = '';
         document.getElementById('results').innerHTML = '';
       }
-      const query = document.getElementById('searchInput').value;
-      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=5&key=${apiKey}`;
+
+      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=5${nextPageToken ? `&pageToken=${nextPageToken}` : ''}&key=${apiKey}`;
 
       fetch(url)
         .then(response => response.json())
         .then(data => {
+          nextPageToken = data.nextPageToken || '';
           const resultsList = document.getElementById('results');
-          resultsList.innerHTML = '';
+
           data.items.forEach(item => {
             const videoId = item.id.videoId;
             const title = item.snippet.title;
@@ -58,11 +56,8 @@
             li.onclick = () => showVideo(videoId);
             resultsList.appendChild(li);
           });
-          if (nextPageToken) {
-            document.getElementById('loadMoreBtn').style.display = 'block';
-          } else {
-            document.getElementById('loadMoreBtn').style.display = 'none';
-          }
+
+          document.getElementById('loadMoreBtn').style.display = nextPageToken ? 'block' : 'none';
         })
         .catch(error => {
           console.error('Error fetching videos:', error);
@@ -70,22 +65,21 @@
     }
 
     function embedFromUrl() {
-  const url = document.getElementById('urlInput').value;
-  const videoId = extractVideoId(url);
-  if (videoId) {
-    const embedHtml = `<iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`;
-    document.getElementById('videoPlayer').innerHTML = embedHtml;
-  } else {
-    alert("Invalid YouTube URL");
-  }
-}
+      const url = document.getElementById('urlInput').value;
+      const videoId = extractVideoId(url);
+      if (videoId) {
+        const embedHtml = `<iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`;
+        document.getElementById('videoPlayer').innerHTML = embedHtml;
+      } else {
+        alert("Invalid YouTube URL");
+      }
+    }
 
-function extractVideoId(url) {
-  const regex = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^\s&]+)/;
-  const match = url.match(regex);
-  return match ? match[1] : null;
-}
-
+    function extractVideoId(url) {
+      const regex = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^\s&]+)/;
+      const match = url.match(regex);
+      return match ? match[1] : null;
+    }
 
     function showVideo(videoId) {
       const embedHtml = `<iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`;
