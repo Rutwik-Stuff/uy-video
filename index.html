@@ -25,13 +25,23 @@
 
 
   <ul id="results"></ul>
+  <button id="loadMoreBtn" onclick="searchVideos(false)" style="display:none;">Load More</button>
+
 
   <div id="videoPlayer"></div>
 
   <script>
+    //declare global variables and api keys
     const apiKey = 'AIzaSyB5yeOfmhq3esZD5A39a_UdgZQ-Dg5mmZw';
+    let currentPage = 0;
+    let nextPageToken = '';
 
-    function searchVideos() {
+    function searchVideos(reset = true) {
+      if (reset) {
+        currentPage = 0;
+        nextPageToken = '';
+        document.getElementById('results').innerHTML = '';
+      }
       const query = document.getElementById('searchInput').value;
       const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=5&key=${apiKey}`;
 
@@ -48,6 +58,11 @@
             li.onclick = () => showVideo(videoId);
             resultsList.appendChild(li);
           });
+          if (nextPageToken) {
+            document.getElementById('loadMoreBtn').style.display = 'block';
+          } else {
+            document.getElementById('loadMoreBtn').style.display = 'none';
+          }
         })
         .catch(error => {
           console.error('Error fetching videos:', error);
